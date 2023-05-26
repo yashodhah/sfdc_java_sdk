@@ -10,7 +10,7 @@ public class InitRouter extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from("timer://runOnce?repeatCount=1&delay=5000")
-                .to("direct:authService")
+                .to("direct:dataSync")
                 .end();
     }
 }

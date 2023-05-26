@@ -16,7 +16,7 @@ public class AuthRouter extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("direct:authService").tracing()
+        from("direct:auth").tracing()
                 .setHeader("CamelHttpMethod")
                 .simple("POST")
                 .setHeader("Content-Type")
@@ -31,9 +31,12 @@ public class AuthRouter extends RouteBuilder {
                 .choice()
                 .when().simple("${header.CamelHttpResponseCode} == 200")
                 .unmarshal().json(JsonLibrary.Jackson, AccessResponseToken.class)
-                .setHeader("Bearer").simple("${body.access_token}")
-                .to("direct:syncData")
+                .process(exchange -> {
+                    exchange.setProperty("ACCESS_TOKEN", exchange.getIn().getBody(AccessResponseToken.class).access_token());
+                })
+                .to("direct:dataSync")
                 .otherwise()
-                .log("Auth failed!!!");
+                .log("Auth failed!!!")
+                .end();
     }
 }
