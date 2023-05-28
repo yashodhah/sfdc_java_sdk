@@ -1,11 +1,19 @@
 package com.example.sfdcsyncpoc.routes;
 
+import com.example.sfdcsyncpoc.models.DBData;
+import com.example.sfdcsyncpoc.models.SFData;
+import com.example.sfdcsyncpoc.services.DataSyncService;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataSyncRouter extends RouteBuilder {
+
+    @Autowired
+    DataSyncService dataSyncService;
+
     @Override
     public void configure() throws Exception {
         from("direct:dataSync").tracing()
@@ -14,6 +22,9 @@ public class DataSyncRouter extends RouteBuilder {
                 .when(simple("${body}"))
                 .to("direct:sfdc")
                 .to("direct:dbSource")
+                .process(exchange -> {
+                    dataSyncService.syncData(new SFData(), new DBData());
+                })
                 .otherwise()
                 .log("Access denied. Missing or invalid ACCESS_TOKEN.")
                 .to("direct:auth")
@@ -32,7 +43,9 @@ public class DataSyncRouter extends RouteBuilder {
                 .end();
 
         from("direct:dbSource").tracing()
-                .log("response from DB")
+                .log("getting data from DB")
+                .delay(5000)
+                .log("db data retrieved")
                 .end();
     }
 
