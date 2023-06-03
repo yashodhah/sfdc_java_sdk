@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 public class SalesforceRouteBuilder extends RouteBuilder {
     @Override
     public void configure() {
-        from("salesforce:{{salesforce.topic}}")
+        from("salesforce:subscribe:{{salesforce.topic}}")
                 .unmarshal().json()
                 .log(">>> ${body}");
     }
